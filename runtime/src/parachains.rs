@@ -381,9 +381,9 @@ impl<T: Trait> Module<T> {
 
 			// track which voters have voted already, 1 bit per authority.
 			let mut track_voters = bitvec![0; authorities.len()];
-			for (auth_id, validity_attestation) in &candidate.validity_votes {
+			for (auth_index, validity_attestation) in &candidate.validity_votes {
 				// protect against double-votes.
-				match validator_group.iter().find(|&(idx, _)| &authorities[*idx] == auth_id) {
+				match validator_group.iter().find(|&(idx, _)| idx == auth_index) {
 					None => return Err("Attesting validator not on this chain's validation duty."),
 					Some(&(idx, _)) => {
 						if track_voters.get(idx) {
@@ -415,7 +415,7 @@ impl<T: Trait> Module<T> {
 				};
 
 				ensure!(
-					sig.verify(&payload[..], &auth_id),
+					sig.verify(&payload[..], &authorities[*auth_index]),
 					"Candidate validity attestation signature is bad."
 				);
 			}
